@@ -1,0 +1,161 @@
+{
+  "name": "TG_CARICATUE_INSTA",
+  "nodes": [
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4-turbo",
+          "mode": "list",
+          "cachedResultName": "GPT-4-TURBO"
+        },
+        "responses": {
+          "values": [
+            {
+              "content": "=You are a creative caricature concept artist.  \nI will give you a short English description of a situation, event, or idea.  \nYour task is to:\n\n1. Interpret the idea creatively.  \n2. Create a funny, imaginative **English caricature-style image description** suitable for an image generation model (like DALL·E).  \n   - Use exaggerated characters, emotions, and scenes in a humorous cartoon or caricature style.  \n   - Do not include any real people's names or identifiable figures — generalize them instead (e.g., \"a famous singer\" instead of the real name).  \n   - Avoid political, violent, or sensitive topics.  \n3. Write a short **Arabic caption** (under 15 words) that humorously captures the spirit of the idea.\n\nDescription (English): {{ $json[\"message\"][\"text\"] }}\n\nReturn the result strictly in this JSON format:\n{\n  \"caricature_prompt\": \"<English description>\",\n  \"arabic_caption\": \"<Arabic short caption>\"\n}\n"
+            }
+          ]
+        },
+        "builtInTools": {},
+        "options": {
+          "maxTokens": 300,
+          "temperature": 0.8
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 2,
+      "position": [
+        208,
+        0
+      ],
+      "id": "0c49813b-c55a-43bf-8644-1edf4da41d8d",
+      "name": "translation and desc. model",
+      "credentials": {
+        "openAiApi": {
+          "id": "4Mw0DebF7GUQBbVz",
+          "name": "Demo_openai_1"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "image",
+        "prompt": "=Create a detailed caricature scene description in English for an AI image generator.\nMake it artistic, emotional, and expressive.\n{{ $json.output[0].content[0].text }}",
+        "options": {
+          "size": "1024x1024"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 2,
+      "position": [
+        576,
+        0
+      ],
+      "id": "11186562-a203-411e-a1f5-27b42c6ec2e7",
+      "name": "Generate an image",
+      "credentials": {
+        "openAiApi": {
+          "id": "4Mw0DebF7GUQBbVz",
+          "name": "Demo_openai_1"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "sendPhoto",
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "binaryData": true,
+        "additionalFields": {
+          "caption": "={{ $('Telegram Trigger').item.json.message.text }}"
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        784,
+        0
+      ],
+      "id": "b69b6cea-09e9-4ae0-8686-0c54b22e5064",
+      "name": "Send Caricature to Telegram",
+      "webhookId": "91d28416-2350-43cf-a0b0-c2ac3b00bf79",
+      "credentials": {
+        "telegramApi": {
+          "id": "xWGbFFsrMeAX8ybm",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {
+          "download": true
+        }
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ],
+      "id": "556b652a-44bb-4cc3-b4fa-f74ed6e6dbd6",
+      "name": "Telegram Trigger",
+      "webhookId": "eca9237c-86ea-4932-abb7-43acf5bb4bed",
+      "credentials": {
+        "telegramApi": {
+          "id": "xWGbFFsrMeAX8ybm",
+          "name": "Telegram account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "translation and desc. model": {
+      "main": [
+        [
+          {
+            "node": "Generate an image",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate an image": {
+      "main": [
+        [
+          {
+            "node": "Send Caricature to Telegram",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "translation and desc. model",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "bed72d81-7ded-4920-9e8d-abc0b50e6166",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "041637c537186180c250d3f36db431f05aee103c83d1bf9dfc81f467780c716a"
+  },
+  "id": "YTZ1nrZbUhhvs6dO",
+  "tags": []
+}
